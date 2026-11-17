@@ -16,6 +16,7 @@ import com.example.mockup_mobapp.ui.screens.ItemDetailsScreen
 import com.example.mockup_mobapp.ui.screens.FoundItem
 import com.example.mockup_mobapp.ui.screens.MyAccountScreen
 import com.example.mockup_mobapp.ui.screens.MyActivityScreen
+import com.example.mockup_mobapp.ui.screens.ReportProblemScreen
 
 @Composable
 @Preview
@@ -104,7 +105,23 @@ fun ScreenContent(
 
             Screen.ITEM_DETAILS -> {
                 selectedItem?.let { item ->
-                    ItemDetailsScreen(item = item)
+                    ItemDetailsScreen(
+                        item = item,
+                        onReportProblem = {
+                            onNavigate(Screen.REPORT_PROBLEM)
+                        }
+                    )
+                }
+            }
+
+            Screen.REPORT_PROBLEM -> {
+                selectedItem?.let { item ->
+                    ReportProblemScreen(
+                        item = item,
+                        onBack = {
+                            onNavigate(Screen.ITEM_DETAILS)
+                        }
+                    )
                 }
             }
 
@@ -113,6 +130,7 @@ fun ScreenContent(
 
             Screen.MY_ACCOUNT ->
                 MyAccountScreen()
+
         }
     }
 }

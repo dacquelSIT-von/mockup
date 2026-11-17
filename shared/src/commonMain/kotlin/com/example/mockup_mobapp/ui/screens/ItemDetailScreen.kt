@@ -11,7 +11,10 @@ import androidx.compose.ui.unit.dp
 import com.example.mockup_mobapp.ui.screens.FoundItem
 
 @Composable
-fun ItemDetailsScreen(item: FoundItem) {
+fun ItemDetailsScreen(
+    item: FoundItem,
+    onReportProblem: () -> Unit = {}
+) {
 
     var showClaimForm by remember {
         mutableStateOf(false)
@@ -171,6 +174,12 @@ fun ItemDetailsScreen(item: FoundItem) {
                     )
                 }
             }
+        }
+        OutlinedButton(
+            onClick = onReportProblem,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Report a Problem")
         }
     }
 }
