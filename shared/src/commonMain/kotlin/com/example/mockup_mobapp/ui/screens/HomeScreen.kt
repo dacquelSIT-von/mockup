@@ -1,95 +1,165 @@
-
 package com.example.mockup_mobapp.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+private data class SampleItem(
+    val name: String,
+    val location: String,
+    val date: String
+)
 
 @Composable
 fun HomeScreen(
-    onFindItem: () -> Unit
+    onFindItem: () -> Unit = {},
+    onReportItem: () -> Unit = {},
+    onProfile: () -> Unit = {}
 ) {
+    val recentItems = listOf(
+        SampleItem("Black wallet", "Library", "Nov 10"),
+        SampleItem("Blue tumbler", "SIT Building", "Nov 9"),
+        SampleItem("Water bottle", "Cafeteria", "Nov 8")
+    )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Top
-    ) {
+    Scaffold(
+    ) { innerPadding ->
 
-        Text(
-            text = "Lost and Found",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            text = "SIT Department",
-            style = MaterialTheme.typography.bodyLarge
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Welcome!",
-            style = MaterialTheme.typography.titleLarge
-        )
-
-        Text(
-            text = "Find lost belongings or report an item you found."
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = onFindItem,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Text("Find an Item")
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(
-            onClick = { },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Report a Found Item")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Recently Found Items",
-            style = MaterialTheme.typography.titleLarge
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+            // App identity
             Column(
-                modifier = Modifier.padding(16.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Blue Water Bottle",
-                    style = MaterialTheme.typography.titleMedium
+                    text = "Welcome to Lost & Found",
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Bold
                 )
 
-                Text("Category: Personal Belongings")
-                Text("Location: SIT Building")
-                Text("Status: Available")
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Surface(
+                    modifier = Modifier.size(110.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "L&F",
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Text(
+                    text = "SIT LOST & FOUND",
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            // Main actions
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "How can we help you today?",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Button(
+                    onClick = onFindItem,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Find an Item")
+                }
+
+                Button(
+                    onClick = onReportItem,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("Report a Found Item")
+                }
+            }
+
+            // Recently reported items
+            Text(
+                text = "Recently reported",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            recentItems.forEach { item ->
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Box(
+                            modifier = Modifier
+                                .size(75.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(8.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("PHOTO", fontSize = 12.sp)
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column {
+                            Text(
+                                text = item.name,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+
+                            Text(
+                                text = "${item.location} • ${item.date}",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Text(
+                                text = "View details →",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
             }
         }
     }
