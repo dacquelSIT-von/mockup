@@ -14,6 +14,8 @@ import com.example.mockup_mobapp.ui.screens.HomeScreen
 import com.example.mockup_mobapp.ui.screens.ReportItemScreen
 import com.example.mockup_mobapp.ui.screens.ItemDetailsScreen
 import com.example.mockup_mobapp.ui.screens.FoundItem
+import com.example.mockup_mobapp.ui.screens.MyAccountScreen
+import com.example.mockup_mobapp.ui.screens.MyActivityScreen
 
 @Composable
 @Preview
@@ -107,10 +109,10 @@ fun ScreenContent(
             }
 
             Screen.MY_ACTIVITY ->
-                Text("My Activity screen coming soon")
+                MyActivityScreen()
 
             Screen.MY_ACCOUNT ->
-                Text("My Account screen coming soon")
+                MyAccountScreen()
         }
     }
 }
