@@ -13,23 +13,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private data class SampleItem(
-    val name: String,
-    val location: String,
-    val date: String
-)
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+
+import com.example.mockup_mobapp.data.model.FoundItem
+import com.example.mockup_mobapp.domain.repository.FoundItemRepository
+
 
 @Composable
 fun HomeScreen(
+    repository: FoundItemRepository,
     onFindItem: () -> Unit = {},
     onReportItem: () -> Unit = {},
     onProfile: () -> Unit = {}
-) {
-    val recentItems = listOf(
-        SampleItem("Black wallet", "Library", "Nov 10"),
-        SampleItem("Blue tumbler", "SIT Building", "Nov 9"),
-        SampleItem("Water bottle", "Cafeteria", "Nov 8")
-    )
+){
+    var recentItems by remember {
+        mutableStateOf<List<FoundItem>>(emptyList())
+    }
+
+    LaunchedEffect(repository) {
+        recentItems = repository.getFoundItems()
+            .take(3)
+    }
 
     Scaffold(
     ) { innerPadding ->
@@ -113,50 +121,56 @@ fun HomeScreen(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+            if (recentItems.isEmpty()) {
+                Text(
+                    text = "No reports have been submitted yet.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }else{
+                recentItems.forEach { item ->
 
-            recentItems.forEach { item ->
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-
-                        Box(
-                            modifier = Modifier
-                                .size(75.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    RoundedCornerShape(8.dp)
-                                ),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("PHOTO", fontSize = 12.sp)
-                        }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(75.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        RoundedCornerShape(8.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("PHOTO", fontSize = 12.sp)
+                            }
 
-                        Column {
-                            Text(
-                                text = item.name,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
+                            Spacer(modifier = Modifier.width(16.dp))
 
-                            Text(
-                                text = "${item.location} • ${item.date}",
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Column {
+                                Text(
+                                    text = item.itemName,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
 
-                            Text(
-                                text = "View details →",
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 13.sp
-                            )
+                                Text(
+                                    text = "${item.location} • ${item.dateFound}",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                Text(
+                                    text = "View details →",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 13.sp
+                                )
+                            }
                         }
                     }
                 }

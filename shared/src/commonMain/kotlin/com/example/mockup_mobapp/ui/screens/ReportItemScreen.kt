@@ -11,10 +11,24 @@ import androidx.compose.ui.unit.dp
 
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
+import com.example.mockup_mobapp.data.model.FoundItem
+import com.example.mockup_mobapp.data.model.ItemStatus
+import com.example.mockup_mobapp.data.model.ReportType
+import com.example.mockup_mobapp.domain.repository.FoundItemRepository
+
+import kotlinx.coroutines.launch
 @Composable
-fun ReportItemScreen() {
-
+fun ReportItemScreen(
+    repository: FoundItemRepository,
+    onGoHome: () -> Unit
+) {
+    var showSuccessDialog by remember {
+        mutableStateOf(false)
+    }
+    val coroutineScope = rememberCoroutineScope()
     var itemName by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -154,13 +168,15 @@ fun ReportItemScreen() {
             value = dateFound,
             onValueChange = { input ->
 
+                val isDeleting = input.text.length < dateFound.text.length
+
                 val digits = input.text.filter { it.isDigit() }.take(8)
 
                 val formattedDate = buildString {
                     digits.forEachIndexed { index, char ->
                         append(char)
 
-                        if (index == 3 || index == 5) {
+                        if (!isDeleting && (index == 3 || index == 5) && index < digits.lastIndex) {
                             append('/')
                         }
                     }
@@ -207,19 +223,32 @@ fun ReportItemScreen() {
         // Validation button
         Button(
             onClick = {
-                formMessage =
-                    if (
-                        itemName.isBlank() ||
-                        category.isBlank() ||
-                        location.isBlank() ||
-                        dateFound.text.isBlank()
-                    ) {
-                        "Please complete all required fields."
-                    } else {
-                        "Required fields completed. Database submission is not connected yet."
+                if (
+                    itemName.isBlank() ||
+                    category.isBlank() ||
+                    location.isBlank() ||
+                    dateFound.text.isBlank()
+                ) {
+                    formMessage = "Please complete all required fields."
+                } else {
+                    coroutineScope.launch {
+                        val newItem = FoundItem(
+                            id = "item-${kotlin.random.Random.nextLong()}",
+                            itemName = itemName.trim(),
+                            category = category,
+                            description = description.trim(),
+                            location = location.trim(),
+                            dateFound = dateFound.text.replace('/', '-'),
+                            reportType = ReportType.FOUND,
+                            status = ItemStatus.AVAILABLE
+                        )
+
+                        repository.addFoundItem(newItem)
+
+                        showSuccessDialog = true
                     }
-            },
-            modifier = Modifier.fillMaxWidth()
+                }
+            }
         ) {
             Text("Validate Report")
         }
@@ -230,5 +259,30 @@ fun ReportItemScreen() {
                 color = MaterialTheme.colorScheme.primary
             )
         }
+    }
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSuccessDialog = false
+            },
+            title = {
+                Text("Report Submitted!")
+            },
+            text = {
+                Text(
+                    "Your found item has been successfully submitted."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSuccessDialog = false
+                        onGoHome()
+                    }
+                ) {
+                    Text("Back to Home")
+                }
+            }
+        )
     }
 }

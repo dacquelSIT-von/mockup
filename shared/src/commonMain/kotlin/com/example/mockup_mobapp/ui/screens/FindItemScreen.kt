@@ -27,51 +27,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
 
 import com.example.mockup_mobapp.data.model.FoundItem
+import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 
 
 @Composable
 fun FindItemScreen(
+    repository: FoundItemRepository,
     onBack: () -> Unit = {},
     onItemSelected: (FoundItem) -> Unit = {},
 ) {
-    val sampleItems = remember {
-        listOf(
-            FoundItem(
-                id = "sample-1",
-                itemName = "Black Wallet",
-                category = "Personal Belongings",
-                location = "Library",
-                dateFound = "2026-11-15",
-                description = "A black leather wallet found near the entrance."
-            ),
-            FoundItem(
-                id = "sample-2",
-                itemName = "Blue Water Bottle",
-                category = "Accessories",
-                location = "Computer Laboratory",
-                dateFound = "2026-11-14",
-                description = "A blue reusable water bottle."
-            ),
-            FoundItem(
-                id = "sample-3",
-                itemName = "Student ID",
-                category = "Documents",
-                location = "Cafeteria",
-                dateFound = "2026-11-13",
-                description = "A student identification card."
-            ),
-            FoundItem(
-                id = "sample-4",
-                itemName = "Umbrella",
-                category = "Accessories",
-                location = "Main Building",
-                dateFound = "2026-11-12",
-                description = "A folded black umbrella."
-            )
-        )
+    var items by remember {
+        mutableStateOf<List<FoundItem>>(emptyList())
     }
+
+    LaunchedEffect(repository) {
+        items = repository.getFoundItems()
+    }
+
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All Categories") }
@@ -92,7 +67,7 @@ fun FindItemScreen(
         "Main Building"
     )
 
-    val filteredItems = sampleItems.filter { item ->
+    val filteredItems = items.filter { item ->
         val matchesSearch =
             item.itemName.contains(searchQuery, ignoreCase = true) ||
                     item.description.contains(searchQuery, ignoreCase = true)

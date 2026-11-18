@@ -17,10 +17,17 @@ import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.ui.screens.MyAccountScreen
 import com.example.mockup_mobapp.ui.screens.MyActivityScreen
 import com.example.mockup_mobapp.ui.screens.ReportProblemScreen
+import com.example.mockup_mobapp.data.local.AppDatabase
+import com.example.mockup_mobapp.data.repository.SqlDelightFoundItemRepository
+import com.example.mockup_mobapp.domain.repository.FoundItemRepository
+
 
 @Composable
-@Preview
-fun App() {
+fun App(database: AppDatabase) {
+    val itemRepository = remember(database) {
+        SqlDelightFoundItemRepository(database)
+    }
+
     var currentScreen by remember {
         mutableStateOf(Screen.HOME)
     }
@@ -50,7 +57,8 @@ fun App() {
                         selectedItem = selectedItem,
                         onItemSelected = { item ->
                             selectedItem = item
-                        }
+                        },
+                        itemRepository = itemRepository
                     )
                 }
             } else {
@@ -62,7 +70,8 @@ fun App() {
                         selectedItem = selectedItem,
                         onItemSelected = { item ->
                             selectedItem = item
-                        }
+                        },
+                        itemRepository = itemRepository
                     )
 
                     AppNavigation(
@@ -83,16 +92,22 @@ fun ScreenContent(
     modifier: Modifier = Modifier,
     selectedItem: FoundItem?,
     onItemSelected: (FoundItem) -> Unit,
+    itemRepository: FoundItemRepository,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (currentScreen) {
             Screen.HOME -> HomeScreen(
                 onFindItem = {
                     onNavigate(Screen.FIND_ITEM)
-                }
+                },
+                onReportItem = {
+                    onNavigate(Screen.REPORT_ITEM)
+                },
+                repository = itemRepository
             )
 
             Screen.FIND_ITEM -> FindItemScreen(
+                repository = itemRepository,
                 onBack = { onNavigate(Screen.HOME) },
                 onItemSelected = { item ->
                     onItemSelected(item)
@@ -101,7 +116,12 @@ fun ScreenContent(
             )
 
             Screen.REPORT_ITEM ->
-                ReportItemScreen()
+                ReportItemScreen(
+                    repository = itemRepository,
+                    onGoHome = {
+                        onNavigate(Screen.HOME)
+                    }
+                )
 
             Screen.ITEM_DETAILS -> {
                 selectedItem?.let { item ->

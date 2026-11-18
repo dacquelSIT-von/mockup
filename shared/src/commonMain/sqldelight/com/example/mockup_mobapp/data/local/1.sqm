@@ -1,0 +1,6 @@
+ALTER TABLE items
+ADD COLUMN created_at TEXT NOT NULL DEFAULT '';
+
+UPDATE items
+SET created_at = date_found
+WHERE created_at = '';

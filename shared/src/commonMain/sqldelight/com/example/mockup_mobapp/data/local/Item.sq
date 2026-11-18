@@ -6,7 +6,32 @@ CREATE TABLE items (
     description TEXT NOT NULL,
     location TEXT NOT NULL,
     date_found TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'AVAILABLE',
     user_id TEXT,
     sync_status TEXT NOT NULL DEFAULT 'PENDING'
 );
+
+selectAllItems:
+SELECT *
+FROM items
+ORDER BY created_at DESC;
+
+insertItem:
+INSERT INTO items (
+    id,
+    item_name,
+    report_type,
+    category,
+    description,
+    location,
+    date_found,
+    created_at,
+    status,
+    user_id,
+    sync_status
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAllItems:
+DELETE FROM items;
