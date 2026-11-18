@@ -176,6 +176,11 @@ onReportProblem: () -> Unit = {}
 
                                         repository.addClaim(newClaim)
 
+                                        repository.updateItemStatus(
+                                            itemId = item.id,
+                                            status = ItemStatus.CLAIM_PENDING
+                                        )
+
                                         claimMessage = "Your claim has been submitted successfully!"
                                         showClaimForm = false
                                         claimReason = ""

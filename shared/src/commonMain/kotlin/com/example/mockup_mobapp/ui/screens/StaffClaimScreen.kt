@@ -92,11 +92,16 @@ fun StaffClaimScreen(
                                                 claimId = claim.id,
                                                 status = ClaimStatus.APPROVED
                                             )
+
+                                            repository.rejectOtherPendingClaims(
+                                                itemId = claim.itemId,
+                                                approvedClaimId = claim.id
+                                            )
+
                                             repository.updateItemStatus(
                                                 itemId = claim.itemId,
                                                 status = ItemStatus.RETURNED
                                             )
-
                                             claims = repository.getClaims()
                                         }
                                     }

@@ -20,6 +20,11 @@ interface FoundItemRepository {
         status: ClaimStatus
     )
 
+    suspend fun rejectOtherPendingClaims(
+        itemId: String,
+        approvedClaimId: String
+    )
+
     suspend fun updateItemStatus(
         itemId: String,
         status: ItemStatus

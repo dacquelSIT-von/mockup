@@ -79,3 +79,10 @@ updateItemStatus:
 UPDATE items
 SET status = ?
 WHERE id = ?;
+
+rejectOtherPendingClaims:
+UPDATE claims
+SET status = 'REJECTED'
+WHERE item_id = ?
+AND id != ?
+AND status = 'PENDING';

@@ -92,4 +92,14 @@ class SqlDelightFoundItemRepository(
             id = itemId
         )
     }
+
+    override suspend fun rejectOtherPendingClaims(
+        itemId: String,
+        approvedClaimId: String
+    ) {
+        database.itemQueries.rejectOtherPendingClaims(
+            itemId,
+            approvedClaimId
+        )
+    }
 }

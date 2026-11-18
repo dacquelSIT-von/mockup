@@ -50,4 +50,22 @@ class InMemoryFoundItemRepository : FoundItemRepository {
             foundItems[index] = foundItems[index].copy(status = status)
         }
     }
+    override suspend fun rejectOtherPendingClaims(
+        itemId: String,
+        approvedClaimId: String
+    ) {
+        claims.indices.forEach { index ->
+            val claim = claims[index]
+
+            if (
+                claim.itemId == itemId &&
+                claim.id != approvedClaimId &&
+                claim.status == ClaimStatus.PENDING
+            ) {
+                claims[index] = claim.copy(
+                    status = ClaimStatus.REJECTED
+                )
+            }
+        }
+    }
 }
