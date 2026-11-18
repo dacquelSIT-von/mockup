@@ -19,7 +19,8 @@ fun AppNavigation(
         Triple(Screen.FIND_ITEM, "Find Item", "⌕"),
         Triple(Screen.REPORT_ITEM, "Report Item", "+"),
         Triple(Screen.MY_ACTIVITY, "My Activity", "▤"),
-        Triple(Screen.MY_ACCOUNT, "My Account", "●")
+        Triple(Screen.MY_ACCOUNT, "My Account", "●"),
+        Triple(Screen.STAFF_CLAIMS, "Staff Claims", "✓")
     )
 
     if (isDesktop) {

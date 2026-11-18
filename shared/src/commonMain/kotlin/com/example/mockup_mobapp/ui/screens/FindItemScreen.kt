@@ -17,6 +17,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,7 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 
 import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
-
+import com.example.mockup_mobapp.data.model.ItemStatus
 
 @Composable
 fun FindItemScreen(
@@ -51,6 +53,7 @@ fun FindItemScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All Categories") }
     var selectedLocation by remember { mutableStateOf("All Locations") }
+    var selectedTab by remember { mutableStateOf(0) }
 
     val categories = listOf(
         "All Categories",
@@ -68,6 +71,7 @@ fun FindItemScreen(
     )
 
     val filteredItems = items.filter { item ->
+
         val matchesSearch =
             item.itemName.contains(searchQuery, ignoreCase = true) ||
                     item.description.contains(searchQuery, ignoreCase = true)
@@ -80,7 +84,14 @@ fun FindItemScreen(
             selectedLocation == "All Locations" ||
                     item.location == selectedLocation
 
-        matchesSearch && matchesCategory && matchesLocation
+        val matchesStatus =
+            if (selectedTab == 0) {
+                item.status == ItemStatus.AVAILABLE
+            } else {
+                item.status == ItemStatus.CLAIM_PENDING
+            }
+
+        matchesStatus && matchesSearch && matchesCategory && matchesLocation
     }
 
     Column(
@@ -154,8 +165,22 @@ fun FindItemScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        TabRow(selectedTabIndex = selectedTab) {
+            Tab(
+                selected = selectedTab == 0,
+                onClick = { selectedTab = 0 },
+                text = { Text("Available") }
+            )
+
+            Tab(
+                selected = selectedTab == 1,
+                onClick = { selectedTab = 1 },
+                text = { Text("Claim Pending") }
+            )
+        }
+
         Text(
-            text = "Found Items (${filteredItems.size})",
+            text = "Items (${filteredItems.size})",
             style = MaterialTheme.typography.titleLarge
         )
 

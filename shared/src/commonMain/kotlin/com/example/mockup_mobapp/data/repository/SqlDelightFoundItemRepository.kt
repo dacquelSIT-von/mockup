@@ -9,6 +9,8 @@ import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 import com.example.mockup_mobapp.data.model.Claim
 import com.example.mockup_mobapp.data.model.ClaimStatus
 
+
+
 class SqlDelightFoundItemRepository(
     private val database: AppDatabase
 ) : FoundItemRepository {
@@ -68,6 +70,26 @@ class SqlDelightFoundItemRepository(
             identifying_details = claim.identifyingDetails,
             status = claim.status.name,
             created_at = claim.createdAt
+        )
+    }
+
+    override suspend fun updateClaimStatus(
+        claimId: String,
+        status: ClaimStatus
+    ) {
+        database.itemQueries.updateClaimStatus(
+            status = status.name,
+            id = claimId
+        )
+    }
+
+    override suspend fun updateItemStatus(
+        itemId: String,
+        status: ItemStatus
+    ) {
+        database.itemQueries.updateItemStatus(
+            status = status.name,
+            id = itemId
         )
     }
 }

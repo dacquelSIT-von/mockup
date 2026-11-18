@@ -12,6 +12,7 @@ import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 import com.example.mockup_mobapp.data.model.Claim
 import kotlinx.coroutines.launch
+import com.example.mockup_mobapp.data.model.ItemStatus
 @Composable
 fun ItemDetailsScreen(
 item: FoundItem,
@@ -118,8 +119,12 @@ onReportProblem: () -> Unit = {}
 
                 Button(
                     onClick = {
-                        showClaimForm = !showClaimForm
-                        claimMessage = ""
+                        if (item.status != ItemStatus.RETURNED) {
+                            showClaimForm = !showClaimForm
+                            claimMessage = ""
+                        } else {
+                            claimMessage = "This item has already been returned and cannot be claimed."
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -151,6 +156,7 @@ onReportProblem: () -> Unit = {}
                     Button(
                         onClick = {
                             if (
+                                item.status != ItemStatus.RETURNED &&
                                 claimReason.isNotBlank() &&
                                 identifyingDetails.isNotBlank() &&
                                 !isSubmitting
@@ -182,6 +188,8 @@ onReportProblem: () -> Unit = {}
                                         isSubmitting = false
                                     }
                                 }
+                            } else if (item.status == ItemStatus.RETURNED) {
+                                claimMessage = "This item has already been returned and cannot be claimed."
                             } else {
                                 claimMessage = "Please complete both fields before submitting."
                             }

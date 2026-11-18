@@ -21,6 +21,8 @@ import com.example.mockup_mobapp.data.local.AppDatabase
 import com.example.mockup_mobapp.data.repository.SqlDelightFoundItemRepository
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 
+//staff
+import com.example.mockup_mobapp.ui.screens.StaffClaimScreen
 
 @Composable
 fun App(database: AppDatabase) {
@@ -154,6 +156,10 @@ fun ScreenContent(
             Screen.MY_ACCOUNT ->
                 MyAccountScreen()
 
+            Screen.STAFF_CLAIMS ->
+                StaffClaimScreen(
+                    repository = itemRepository
+                )
         }
     }
 }

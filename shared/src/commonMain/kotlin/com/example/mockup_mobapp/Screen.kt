@@ -7,7 +7,8 @@ enum class Screen {
     REPORT_ITEM,
     MY_ACTIVITY,
     MY_ACCOUNT,
-    REPORT_PROBLEM
+    REPORT_PROBLEM,
+    STAFF_CLAIMS
 }
 
 /*Screen represents our application's navigation destinations.

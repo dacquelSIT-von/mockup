@@ -1,9 +1,9 @@
 
 package com.example.mockup_mobapp.domain.repository
-
 import com.example.mockup_mobapp.data.model.FoundItem
-
 import com.example.mockup_mobapp.data.model.Claim
+import com.example.mockup_mobapp.data.model.ClaimStatus
+import com.example.mockup_mobapp.data.model.ItemStatus
 
 interface FoundItemRepository {
 
@@ -14,4 +14,14 @@ interface FoundItemRepository {
     suspend fun getClaims(): List<Claim>
 
     suspend fun addClaim(claim: Claim)
+
+    suspend fun updateClaimStatus(
+        claimId: String,
+        status: ClaimStatus
+    )
+
+    suspend fun updateItemStatus(
+        itemId: String,
+        status: ItemStatus
+    )
 }

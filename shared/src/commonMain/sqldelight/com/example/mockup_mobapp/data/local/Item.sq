@@ -69,3 +69,13 @@ SELECT *
 FROM claims
 WHERE item_id = ?
 ORDER BY created_at DESC;
+
+updateClaimStatus:
+UPDATE claims
+SET status = ?
+WHERE id = ?;
+
+updateItemStatus:
+UPDATE items
+SET status = ?
+WHERE id = ?;

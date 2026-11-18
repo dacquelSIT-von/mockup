@@ -5,6 +5,8 @@ import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 
 import com.example.mockup_mobapp.data.model.Claim
+import com.example.mockup_mobapp.data.model.ClaimStatus
+import com.example.mockup_mobapp.data.model.ItemStatus
 
 class InMemoryFoundItemRepository : FoundItemRepository {
 
@@ -25,5 +27,27 @@ class InMemoryFoundItemRepository : FoundItemRepository {
 
     override suspend fun addClaim(claim: Claim) {
         claims.add(claim)
+    }
+
+    override suspend fun updateClaimStatus(
+        claimId: String,
+        status: ClaimStatus
+    ) {
+        val index = claims.indexOfFirst { it.id == claimId }
+
+        if (index != -1) {
+            claims[index] = claims[index].copy(status = status)
+        }
+    }
+
+    override suspend fun updateItemStatus(
+        itemId: String,
+        status: ItemStatus
+    ) {
+        val index = foundItems.indexOfFirst { it.id == itemId }
+
+        if (index != -1) {
+            foundItems[index] = foundItems[index].copy(status = status)
+        }
     }
 }
