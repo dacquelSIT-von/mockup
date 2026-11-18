@@ -6,6 +6,9 @@ import com.example.mockup_mobapp.data.model.ItemStatus
 import com.example.mockup_mobapp.data.model.ReportType
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 
+import com.example.mockup_mobapp.data.model.Claim
+import com.example.mockup_mobapp.data.model.ClaimStatus
+
 class SqlDelightFoundItemRepository(
     private val database: AppDatabase
 ) : FoundItemRepository {
@@ -38,6 +41,33 @@ class SqlDelightFoundItemRepository(
             status = item.status.name,
             user_id = null,
             sync_status = "PENDING"
+        )
+    }
+    override suspend fun getClaims(): List<Claim> {
+        return database.itemQueries.selectAllClaims()
+            .executeAsList()
+            .map { claim ->
+                Claim(
+                    id = claim.id,
+                    itemId = claim.item_id,
+                    claimantId = claim.claimant_id,
+                    claimReason = claim.claim_reason,
+                    identifyingDetails = claim.identifying_details,
+                    status = ClaimStatus.valueOf(claim.status),
+                    createdAt = claim.created_at
+                )
+            }
+    }
+
+    override suspend fun addClaim(claim: Claim) {
+        database.itemQueries.insertClaim(
+            id = claim.id,
+            item_id = claim.itemId,
+            claimant_id = claim.claimantId,
+            claim_reason = claim.claimReason,
+            identifying_details = claim.identifyingDetails,
+            status = claim.status.name,
+            created_at = claim.createdAt
         )
     }
 }

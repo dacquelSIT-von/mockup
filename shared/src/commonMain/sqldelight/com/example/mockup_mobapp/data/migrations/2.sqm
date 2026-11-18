@@ -1,0 +1,10 @@
+CREATE TABLE claims (
+    id TEXT NOT NULL PRIMARY KEY,
+    item_id TEXT NOT NULL,
+    claimant_id TEXT,
+    claim_reason TEXT NOT NULL,
+    identifying_details TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    created_at TEXT NOT NULL DEFAULT '',
+    FOREIGN KEY (item_id) REFERENCES items(id)
+);

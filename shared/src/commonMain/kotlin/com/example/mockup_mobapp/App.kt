@@ -127,6 +127,7 @@ fun ScreenContent(
                 selectedItem?.let { item ->
                     ItemDetailsScreen(
                         item = item,
+                        repository = itemRepository,
                         onReportProblem = {
                             onNavigate(Screen.REPORT_PROBLEM)
                         }
@@ -146,7 +147,9 @@ fun ScreenContent(
             }
 
             Screen.MY_ACTIVITY ->
-                MyActivityScreen()
+                MyActivityScreen(
+                    repository = itemRepository
+                )
 
             Screen.MY_ACCOUNT ->
                 MyAccountScreen()

@@ -9,24 +9,32 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+import com.example.mockup_mobapp.domain.repository.FoundItemRepository
+import com.example.mockup_mobapp.data.model.FoundItem
+import com.example.mockup_mobapp.data.model.Claim
 @Composable
-fun MyActivityScreen() {
+fun MyActivityScreen(
+    repository: FoundItemRepository
+) {
 
     var selectedTab by remember {
         mutableIntStateOf(0)
     }
 
+    var reports by remember {
+        mutableStateOf<List<FoundItem>>(emptyList())
+    }
+
+    var claims by remember {
+        mutableStateOf<List<Claim>>(emptyList())
+    }
+
+    LaunchedEffect(repository) {
+        reports = repository.getFoundItems()
+        claims = repository.getClaims()
+    }
+
     val tabs = listOf("My Reports", "My Claims")
-
-    val reports = listOf(
-        "Black Wallet" to "Available",
-        "Blue Water Bottle" to "Returned"
-    )
-
-    val claims = listOf(
-        "Student ID" to "Pending",
-        "Umbrella" to "Rejected"
-    )
 
     Column(
         modifier = Modifier
@@ -59,20 +67,18 @@ fun MyActivityScreen() {
         }
 
         if (selectedTab == 0) {
-
-            reports.forEach { (itemName, status) ->
+            reports.forEach { item ->
                 ActivityCard(
-                    itemName = itemName,
-                    status = status
+                    itemName = item.itemName,
+                    status = item.status.name
                 )
             }
-
         } else {
-
-            claims.forEach { (itemName, status) ->
+            claims.forEach { claim ->
                 ActivityCard(
-                    itemName = itemName,
-                    status = status
+                    itemName = reports.find { it.id == claim.itemId }?.itemName
+                        ?: "Unknown Item",
+                    status = claim.status.name
                 )
             }
         }

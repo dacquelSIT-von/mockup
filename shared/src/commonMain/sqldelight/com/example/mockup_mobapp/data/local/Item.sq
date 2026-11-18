@@ -35,3 +35,37 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllItems:
 DELETE FROM items;
+
+CREATE TABLE claims (
+    id TEXT NOT NULL PRIMARY KEY,
+    item_id TEXT NOT NULL,
+    claimant_id TEXT,
+    claim_reason TEXT NOT NULL,
+    identifying_details TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    created_at TEXT NOT NULL DEFAULT '',
+    FOREIGN KEY (item_id) REFERENCES items(id)
+);
+
+insertClaim:
+INSERT INTO claims (
+    id,
+    item_id,
+    claimant_id,
+    claim_reason,
+    identifying_details,
+    status,
+    created_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectAllClaims:
+SELECT *
+FROM claims
+ORDER BY created_at DESC;
+
+selectClaimsByItem:
+SELECT *
+FROM claims
+WHERE item_id = ?
+ORDER BY created_at DESC;

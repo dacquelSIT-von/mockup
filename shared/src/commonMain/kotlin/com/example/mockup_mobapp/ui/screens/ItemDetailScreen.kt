@@ -9,12 +9,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 import com.example.mockup_mobapp.data.model.FoundItem
-
+import com.example.mockup_mobapp.domain.repository.FoundItemRepository
+import com.example.mockup_mobapp.data.model.Claim
+import kotlinx.coroutines.launch
 @Composable
 fun ItemDetailsScreen(
-    item: FoundItem,
-    onReportProblem: () -> Unit = {}
+item: FoundItem,
+repository: FoundItemRepository,
+onReportProblem: () -> Unit = {}
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    var isSubmitting by remember { mutableStateOf(false) }
 
     var showClaimForm by remember {
         mutableStateOf(false)
@@ -147,23 +152,43 @@ fun ItemDetailsScreen(
                         onClick = {
                             if (
                                 claimReason.isNotBlank() &&
-                                identifyingDetails.isNotBlank()
+                                identifyingDetails.isNotBlank() &&
+                                !isSubmitting
                             ) {
-                                claimMessage =
-                                    "Your claim has been submitted successfully! " +
-                                            "Backend integration is still pending."
+                                coroutineScope.launch {
+                                    isSubmitting = true
 
-                                showClaimForm = false
-                                claimReason = ""
-                                identifyingDetails = ""
+                                    try {
+                                        val newClaim = Claim(
+                                            id = "claim-${kotlin.random.Random.nextLong()}",
+                                            itemId = item.id,
+                                            claimantId = null,
+                                            claimReason = claimReason,
+                                            identifyingDetails = identifyingDetails,
+                                            createdAt = kotlin.time.Clock.System.now().toString()
+                                        )
+
+                                        repository.addClaim(newClaim)
+
+                                        claimMessage = "Your claim has been submitted successfully!"
+                                        showClaimForm = false
+                                        claimReason = ""
+                                        identifyingDetails = ""
+
+                                    } catch (exception: Exception) {
+                                    exception.printStackTrace()
+                                    claimMessage = "Claim error: ${exception.message}"
+                                    } finally {
+                                        isSubmitting = false
+                                    }
+                                }
                             } else {
-                                claimMessage =
-                                    "Please complete both fields before submitting."
+                                claimMessage = "Please complete both fields before submitting."
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Submit Claim")
+                        Text(if (isSubmitting) "Submitting..." else "Submit Claim")
                     }
                 }
 
