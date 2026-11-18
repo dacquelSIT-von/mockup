@@ -7,6 +7,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+import com.example.mockup_mobapp.data.model.FoundItem
+
 @Composable
 fun ReportProblemScreen(
     item: FoundItem,
@@ -43,7 +45,7 @@ fun ReportProblemScreen(
         )
 
         Text(
-            text = "Item: ${item.name}",
+            text = "Item: ${item.itemName}",
             style = MaterialTheme.typography.titleMedium
         )
 

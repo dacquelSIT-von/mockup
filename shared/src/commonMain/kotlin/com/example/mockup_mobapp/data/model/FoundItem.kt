@@ -7,6 +7,11 @@ enum class ItemStatus {
     RETURNED
 }
 
+enum class ReportType {
+    LOST,
+    FOUND
+}
+
 data class FoundItem(
     val id: String,
     val itemName: String,
@@ -14,5 +19,6 @@ data class FoundItem(
     val description: String,
     val location: String,
     val dateFound: String,
+    val reportType: ReportType = ReportType.FOUND,
     val status: ItemStatus = ItemStatus.AVAILABLE
 )

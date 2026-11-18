@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-import com.example.mockup_mobapp.ui.screens.FoundItem
+import com.example.mockup_mobapp.data.model.FoundItem
 
 @Composable
 fun ItemDetailsScreen(
@@ -61,7 +61,7 @@ fun ItemDetailsScreen(
 
         // Item Information
         Text(
-            text = item.name,
+            text = item.itemName,
             style = MaterialTheme.typography.headlineSmall
         )
 
@@ -82,7 +82,7 @@ fun ItemDetailsScreen(
             text = "Date Found",
             style = MaterialTheme.typography.titleMedium
         )
-        Text(item.date)
+        Text(item.dateFound)
 
         Text(
             text = "Description",

@@ -28,13 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-data class FoundItem(
-    val name: String,
-    val category: String,
-    val location: String,
-    val date: String,
-    val description: String
-)
+import com.example.mockup_mobapp.data.model.FoundItem
+
 
 @Composable
 fun FindItemScreen(
@@ -44,32 +39,36 @@ fun FindItemScreen(
     val sampleItems = remember {
         listOf(
             FoundItem(
-                "Black Wallet",
-                "Personal Belongings",
-                "Library",
-                "November 15, 2026",
-                "A black leather wallet found near the entrance."
+                id = "sample-1",
+                itemName = "Black Wallet",
+                category = "Personal Belongings",
+                location = "Library",
+                dateFound = "2026-11-15",
+                description = "A black leather wallet found near the entrance."
             ),
             FoundItem(
-                "Blue Water Bottle",
-                "Accessories",
-                "Computer Laboratory",
-                "November 14, 2026",
-                "A blue reusable water bottle."
+                id = "sample-2",
+                itemName = "Blue Water Bottle",
+                category = "Accessories",
+                location = "Computer Laboratory",
+                dateFound = "2026-11-14",
+                description = "A blue reusable water bottle."
             ),
             FoundItem(
-                "Student ID",
-                "Documents",
-                "Cafeteria",
-                "November 13, 2026",
-                "A student identification card."
+                id = "sample-3",
+                itemName = "Student ID",
+                category = "Documents",
+                location = "Cafeteria",
+                dateFound = "2026-11-13",
+                description = "A student identification card."
             ),
             FoundItem(
-                "Umbrella",
-                "Accessories",
-                "Main Building",
-                "November 12, 2026",
-                "A folded black umbrella."
+                id = "sample-4",
+                itemName = "Umbrella",
+                category = "Accessories",
+                location = "Main Building",
+                dateFound = "2026-11-12",
+                description = "A folded black umbrella."
             )
         )
     }
@@ -95,7 +94,7 @@ fun FindItemScreen(
 
     val filteredItems = sampleItems.filter { item ->
         val matchesSearch =
-            item.name.contains(searchQuery, ignoreCase = true) ||
+            item.itemName.contains(searchQuery, ignoreCase = true) ||
                     item.description.contains(searchQuery, ignoreCase = true)
 
         val matchesCategory =
@@ -211,7 +210,7 @@ fun FindItemScreen(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = item.name,
+                            text = item.itemName,
                             style = MaterialTheme.typography.titleMedium
                         )
 
@@ -219,7 +218,7 @@ fun FindItemScreen(
 
                         Text("Category: ${item.category}")
                         Text("Location: ${item.location}")
-                        Text("Date Found: ${item.date}")
+                        Text("Date Found: ${item.dateFound}")
 
                         Spacer(modifier = Modifier.height(6.dp))
 

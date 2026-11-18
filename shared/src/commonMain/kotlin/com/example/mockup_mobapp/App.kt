@@ -13,7 +13,7 @@ import com.example.mockup_mobapp.ui.screens.FindItemScreen
 import com.example.mockup_mobapp.ui.screens.HomeScreen
 import com.example.mockup_mobapp.ui.screens.ReportItemScreen
 import com.example.mockup_mobapp.ui.screens.ItemDetailsScreen
-import com.example.mockup_mobapp.ui.screens.FoundItem
+import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.ui.screens.MyAccountScreen
 import com.example.mockup_mobapp.ui.screens.MyActivityScreen
 import com.example.mockup_mobapp.ui.screens.ReportProblemScreen
