@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -30,10 +31,12 @@ kotlin {
     }
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.sqldelight.android.driver)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }
         commonMain.dependencies {
+            implementation(libs.sqldelight.runtime)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -48,6 +51,17 @@ kotlin {
         }
         getByName("androidDeviceTest").dependencies {
             implementation(libs.androidx.testRunner)
+        }
+        jvmMain.dependencies {
+            implementation(libs.sqldelight.sqlite.driver)
+        }
+    }
+
+}
+sqldelight {
+    databases {
+        create("AppDatabase") {
+            packageName.set("com.example.mockup_mobapp.data.local")
         }
     }
 }
