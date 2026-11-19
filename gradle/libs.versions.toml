@@ -1,4 +1,5 @@
 [versions]
+kotlinxSerialization = "1.12.0"
 supabase = "3.9.0"
 ktor = "3.4.0"
 sqlDelight = "2.3.2"
@@ -20,6 +21,7 @@ kotlinx-coroutines = "1.11.0"
 material3 = "1.12.0-alpha03"
 
 [libraries]
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt", version.ref = "supabase" }
 supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt", version.ref = "supabase" }

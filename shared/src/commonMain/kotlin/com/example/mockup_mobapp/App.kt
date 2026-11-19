@@ -27,6 +27,7 @@ import io.github.jan.supabase.auth.auth
 import com.example.mockup_mobapp.ui.screens.AuthScreen
 import androidx.compose.material3.CircularProgressIndicator
 import com.example.mockup_mobapp.data.remote.AuthService
+import com.example.mockup_mobapp.data.remote.SupabaseFoundItemRepository
 
 //staff
 import com.example.mockup_mobapp.ui.screens.StaffClaimScreen
@@ -96,7 +97,9 @@ fun App(database: AppDatabase) {
     }
 
     val itemRepository = remember(database) {
-        SqlDelightFoundItemRepository(database)
+        val localRepository = SqlDelightFoundItemRepository(database)
+
+        SupabaseFoundItemRepository(localRepository)
     }
 
     var currentScreen by remember {
