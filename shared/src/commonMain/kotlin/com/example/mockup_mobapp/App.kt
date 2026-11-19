@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.Alignment
 
 import com.example.mockup_mobapp.ui.screens.FindItemScreen
 import com.example.mockup_mobapp.ui.screens.HomeScreen
@@ -24,8 +25,37 @@ import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 //staff
 import com.example.mockup_mobapp.ui.screens.StaffClaimScreen
 
+//supabase
+import com.example.mockup_mobapp.data.remote.supabase
+import io.github.jan.supabase.postgrest.from
+
+import kotlinx.coroutines.withTimeout
+
 @Composable
 fun App(database: AppDatabase) {
+    var supabaseStatus by remember {
+        mutableStateOf("Checking Supabase connection...")
+    }
+
+    LaunchedEffect(Unit) {
+        try {
+            withTimeout(15_000) {
+                supabase.from("items").select()
+            }
+
+            supabaseStatus = "Supabase connection successful!"
+        } catch (e: Exception) {
+            supabaseStatus = buildString {
+                appendLine("Connection failed")
+                appendLine("Type: ${e::class.simpleName}")
+                appendLine("Message: ${e.message}")
+                appendLine("Cause: ${e.cause?.message}")
+            }
+        
+            e.printStackTrace()
+        }
+    }
+
     val itemRepository = remember(database) {
         SqlDelightFoundItemRepository(database)
     }
@@ -83,6 +113,12 @@ fun App(database: AppDatabase) {
                     )
                 }
             }
+            Text(
+                text = supabaseStatus,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(8.dp)
+            )
         }
     }
 }
