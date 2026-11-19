@@ -6,10 +6,10 @@ import com.example.mockup_mobapp.data.model.ItemStatus
 import com.example.mockup_mobapp.data.model.ReportType
 import com.example.mockup_mobapp.data.model.Claim
 import com.example.mockup_mobapp.data.model.ClaimStatus
-import com.example.mockup_mobapp.data.repository.SqlDelightFoundItemRepository
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
+
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
 
 class SupabaseFoundItemRepository(
     private val localRepository: FoundItemRepository
@@ -29,14 +29,36 @@ class SupabaseFoundItemRepository(
                 description = item.description,
                 location = item.location,
                 dateFound = item.dateFound,
-                reportType = ReportType.valueOf(item.reportType.trim().uppercase()),
-                status = ItemStatus.valueOf(item.status.trim().uppercase())
+                reportType = ReportType.valueOf(
+                    item.reportType.trim().uppercase()
+                ),
+                status = ItemStatus.valueOf(
+                    item.status.trim().uppercase()
+                )
             )
         }
     }
 
     override suspend fun addFoundItem(item: FoundItem) {
-        localRepository.addFoundItem(item)
+        val currentUser = supabase.auth.currentUserOrNull()
+            ?: throw IllegalStateException(
+                "You must be logged in to submit a report."
+            )
+
+        val newItem = SupabaseItemInsert(
+            itemName = item.itemName,
+            category = item.category,
+            description = item.description,
+            location = item.location,
+            dateFound = item.dateFound,
+            reportType = item.reportType.name,
+            status = item.status.name,
+            userId = currentUser.id
+        )
+
+        supabase
+            .from("items")
+            .insert(newItem)
     }
 
     override suspend fun getClaims(): List<Claim> =

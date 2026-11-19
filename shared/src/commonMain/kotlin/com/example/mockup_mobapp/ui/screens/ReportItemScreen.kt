@@ -8,18 +8,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 
 import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.data.model.ItemStatus
 import com.example.mockup_mobapp.data.model.ReportType
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+
 @Composable
 fun ReportItemScreen(
     repository: FoundItemRepository,
@@ -28,7 +27,9 @@ fun ReportItemScreen(
     var showSuccessDialog by remember {
         mutableStateOf(false)
     }
+
     val coroutineScope = rememberCoroutineScope()
+
     var itemName by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -39,6 +40,7 @@ fun ReportItemScreen(
     var categoryExpanded by remember { mutableStateOf(false) }
     var photoMessage by remember { mutableStateOf("") }
     var formMessage by remember { mutableStateOf("") }
+    var isSubmitting by remember { mutableStateOf(false) }
 
     val categories = listOf(
         "Electronics",
@@ -62,11 +64,8 @@ fun ReportItemScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Text(
-            text = "Provide details about the item you found."
-        )
+        Text("Provide details about the item you found.")
 
-        // Photo upload section
         Card(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -75,7 +74,6 @@ fun ReportItemScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text("Upload Photo")
-
                 Text("Choose a clear photo of the found item.")
 
                 OutlinedButton(
@@ -93,7 +91,6 @@ fun ReportItemScreen(
             }
         }
 
-        // Item name
         OutlinedTextField(
             value = itemName,
             onValueChange = { itemName = it },
@@ -103,7 +100,6 @@ fun ReportItemScreen(
             singleLine = true
         )
 
-        // Category
         Column {
             Text("Category *")
 
@@ -114,9 +110,11 @@ fun ReportItemScreen(
                     }
                 ) {
                     Text(
-                        if (category.isEmpty())
+                        if (category.isEmpty()) {
                             "Choose Category"
-                        else category
+                        } else {
+                            category
+                        }
                     )
                 }
 
@@ -139,7 +137,6 @@ fun ReportItemScreen(
             }
         }
 
-        // Description
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -151,7 +148,6 @@ fun ReportItemScreen(
             minLines = 3
         )
 
-        // Location
         OutlinedTextField(
             value = location,
             onValueChange = { location = it },
@@ -163,20 +159,26 @@ fun ReportItemScreen(
             singleLine = true
         )
 
-        // Date
         OutlinedTextField(
             value = dateFound,
             onValueChange = { input ->
 
-                val isDeleting = input.text.length < dateFound.text.length
+                val isDeleting =
+                    input.text.length < dateFound.text.length
 
-                val digits = input.text.filter { it.isDigit() }.take(8)
+                val digits = input.text
+                    .filter { it.isDigit() }
+                    .take(8)
 
                 val formattedDate = buildString {
                     digits.forEachIndexed { index, char ->
                         append(char)
 
-                        if (!isDeleting && (index == 3 || index == 5) && index < digits.lastIndex) {
+                        if (
+                            !isDeleting &&
+                            (index == 3 || index == 5) &&
+                            index < digits.lastIndex
+                        ) {
                             append('/')
                         }
                     }
@@ -188,8 +190,8 @@ fun ReportItemScreen(
                     .coerceAtMost(digits.length)
 
                 val cursorPosition = digitsBeforeCursor +
-                        (if (digitsBeforeCursor >= 4) 1 else 0) +
-                        (if (digitsBeforeCursor >= 6) 1 else 0)
+                    (if (digitsBeforeCursor >= 4) 1 else 0) +
+                    (if (digitsBeforeCursor >= 6) 1 else 0)
 
                 dateFound = TextFieldValue(
                     text = formattedDate,
@@ -202,7 +204,6 @@ fun ReportItemScreen(
             singleLine = true
         )
 
-        // Contact details
         OutlinedTextField(
             value = contactDetails,
             onValueChange = { contactDetails = it },
@@ -220,46 +221,72 @@ fun ReportItemScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // Validation button
         Button(
             onClick = {
+                formMessage = ""
+
                 if (
                     itemName.isBlank() ||
                     category.isBlank() ||
                     location.isBlank() ||
                     dateFound.text.isBlank()
                 ) {
-                    formMessage = "Please complete all required fields."
+                    formMessage =
+                        "Please complete all required fields."
                 } else {
                     coroutineScope.launch {
-                        val newItem = FoundItem(
-                            id = "item-${kotlin.random.Random.nextLong()}",
-                            itemName = itemName.trim(),
-                            category = category,
-                            description = description.trim(),
-                            location = location.trim(),
-                            dateFound = dateFound.text.replace('/', '-'),
-                            reportType = ReportType.FOUND,
-                            status = ItemStatus.AVAILABLE
-                        )
+                        isSubmitting = true
 
-                        repository.addFoundItem(newItem)
+                        try {
+                            val newItem = FoundItem(
+                                id = "item-${kotlin.random.Random.nextLong()}",
+                                itemName = itemName.trim(),
+                                category = category,
+                                description = description.trim(),
+                                location = location.trim(),
+                                dateFound = dateFound.text.replace('/', '-'),
+                                reportType = ReportType.FOUND,
+                                status = ItemStatus.AVAILABLE
+                            )
 
-                        showSuccessDialog = true
+                            repository.addFoundItem(newItem)
+
+                            showSuccessDialog = true
+
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            formMessage =
+                                "Unable to submit your report. Please check your connection and try again."
+                        } finally {
+                            isSubmitting = false
+                        }
                     }
                 }
-            }
+            },
+            enabled = !isSubmitting,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Validate Report")
+            if (isSubmitting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Submitting...")
+            } else {
+                Text("Submit Report")
+            }
         }
 
         if (formMessage.isNotEmpty()) {
             Text(
                 text = formMessage,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.error
             )
         }
     }
+
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = {
