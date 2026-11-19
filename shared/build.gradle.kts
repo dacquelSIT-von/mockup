@@ -100,6 +100,7 @@ kotlin {
             implementation(libs.compose.uiTooling)
         }
         commonMain.dependencies {
+            implementation(libs.supabase.compose.auth)
             implementation(libs.supabase.auth)
             implementation(libs.supabase.postgrest)
             implementation(libs.sqldelight.runtime)

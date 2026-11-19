@@ -21,6 +21,11 @@ import com.example.mockup_mobapp.ui.screens.ReportProblemScreen
 import com.example.mockup_mobapp.data.local.AppDatabase
 import com.example.mockup_mobapp.data.repository.SqlDelightFoundItemRepository
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.collect
+import io.github.jan.supabase.auth.auth
+import com.example.mockup_mobapp.ui.screens.AuthScreen
+import androidx.compose.material3.CircularProgressIndicator
 
 //staff
 import com.example.mockup_mobapp.ui.screens.StaffClaimScreen
@@ -33,6 +38,38 @@ import kotlinx.coroutines.withTimeout
 
 @Composable
 fun App(database: AppDatabase) {
+        var isAuthenticated by remember {
+        mutableStateOf(false)
+    }
+
+    var isCheckingAuth by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(Unit) {
+        supabase.auth.sessionStatus.collect { status ->
+            when (status) {
+                is SessionStatus.Authenticated -> {
+                    isAuthenticated = true
+                    isCheckingAuth = false
+                }
+
+                is SessionStatus.NotAuthenticated -> {
+                    isAuthenticated = false
+                    isCheckingAuth = false
+                }
+
+                is SessionStatus.Initializing -> {
+                    isCheckingAuth = true
+                }
+
+                is SessionStatus.RefreshFailure -> {
+                    isAuthenticated = false
+                    isCheckingAuth = false
+                }
+            }
+        }
+    }
     var supabaseStatus by remember {
         mutableStateOf("Checking Supabase connection...")
     }
@@ -51,7 +88,7 @@ fun App(database: AppDatabase) {
                 appendLine("Message: ${e.message}")
                 appendLine("Cause: ${e.cause?.message}")
             }
-        
+
             e.printStackTrace()
         }
     }
@@ -69,9 +106,24 @@ fun App(database: AppDatabase) {
     }
 
     MaterialTheme {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize()
-        ) {
+    when {
+        isCheckingAuth -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        !isAuthenticated -> {
+            AuthScreen()
+        }
+
+        else -> {
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxSize()
+            ) {
             val isDesktop = maxWidth >= 600.dp
 
             if (isDesktop) {
@@ -113,15 +165,17 @@ fun App(database: AppDatabase) {
                     )
                 }
             }
-            Text(
+                        Text(
                 text = supabaseStatus,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(8.dp)
             )
-        }
-    }
-}
+            } // BoxWithConstraints
+        } // else
+    } // when
+} // MaterialTheme
+} // App
 
 @Composable
 fun ScreenContent(
@@ -196,6 +250,8 @@ fun ScreenContent(
                 StaffClaimScreen(
                     repository = itemRepository
                 )
+            
+                
         }
     }
 }
