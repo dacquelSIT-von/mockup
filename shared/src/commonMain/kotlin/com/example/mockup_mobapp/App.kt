@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.collect
 import io.github.jan.supabase.auth.auth
 import com.example.mockup_mobapp.ui.screens.AuthScreen
 import androidx.compose.material3.CircularProgressIndicator
+import com.example.mockup_mobapp.data.remote.AuthService
 
 //staff
 import com.example.mockup_mobapp.ui.screens.StaffClaimScreen
@@ -33,6 +34,7 @@ import com.example.mockup_mobapp.ui.screens.StaffClaimScreen
 //supabase
 import com.example.mockup_mobapp.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.launch
 
 import kotlinx.coroutines.withTimeout
 
@@ -186,6 +188,8 @@ fun ScreenContent(
     onItemSelected: (FoundItem) -> Unit,
     itemRepository: FoundItemRepository,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    
     Box(modifier = modifier.fillMaxSize()) {
         when (currentScreen) {
             Screen.HOME -> HomeScreen(
@@ -243,8 +247,14 @@ fun ScreenContent(
                     repository = itemRepository
                 )
 
-            Screen.MY_ACCOUNT ->
-                MyAccountScreen()
+           Screen.MY_ACCOUNT ->
+            MyAccountScreen(
+                onLogout = {
+                    coroutineScope.launch {
+                        AuthService().logout()
+                    }
+                }
+            )
 
             Screen.STAFF_CLAIMS ->
                 StaffClaimScreen(
