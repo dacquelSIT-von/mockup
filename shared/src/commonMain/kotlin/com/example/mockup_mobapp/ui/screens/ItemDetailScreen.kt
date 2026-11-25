@@ -21,6 +21,7 @@ onReportProblem: () -> Unit = {}
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isSubmitting by remember { mutableStateOf(false) }
+    var currentItemStatus by remember(item.id) { mutableStateOf(item.status) }
 
     var showClaimForm by remember {
         mutableStateOf(false)
@@ -101,7 +102,7 @@ onReportProblem: () -> Unit = {}
 
 
 // Claim Section
-        when (item.status) {
+        when (currentItemStatus) {
 
             ItemStatus.AVAILABLE -> {
                 Card(
@@ -177,10 +178,7 @@ onReportProblem: () -> Unit = {}
 
                                                 repository.addClaim(newClaim)
 
-                                                repository.updateItemStatus(
-                                                    itemId = item.id,
-                                                    status = ItemStatus.CLAIM_PENDING
-                                                )
+                                                currentItemStatus = ItemStatus.CLAIM_PENDING
 
                                                 claimMessage = "Your claim has been submitted successfully!"
                                                 showClaimForm = false

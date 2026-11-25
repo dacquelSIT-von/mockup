@@ -1,4 +1,10 @@
 import java.util.Properties
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -13,20 +19,23 @@ plugins {
 val generatedSupabaseDir =
     layout.buildDirectory.dir("generated/supabase/commonMain/kotlin")
 
-val generateSupabaseConfig = tasks.register("generateSupabaseConfig") {
-    val localPropertiesFile = rootProject.file("local.properties")
+abstract class GenerateSupabaseConfigTask : DefaultTask() {
+    @get:InputFile
+    abstract val localPropertiesFile: RegularFileProperty
 
-    inputs.file(localPropertiesFile)
-    outputs.dir(generatedSupabaseDir)
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
 
-    doLast {
+    @TaskAction
+    fun generate() {
         val properties = Properties()
+        val propertiesFile = localPropertiesFile.get().asFile
 
-        require(localPropertiesFile.exists()) {
+        require(propertiesFile.exists()) {
             "local.properties was not found."
         }
 
-        localPropertiesFile.inputStream().use {
+        propertiesFile.inputStream().use {
             properties.load(it)
         }
 
@@ -41,7 +50,7 @@ val generateSupabaseConfig = tasks.register("generateSupabaseConfig") {
         fun escape(value: String): String =
             value.replace("\\", "\\\\").replace("\"", "\\\"")
 
-        val outputFile = generatedSupabaseDir.get()
+        val outputFile = outputDirectory.get()
             .file("com/example/mockup_mobapp/data/remote/SupabaseConfig.kt")
             .asFile
 
@@ -60,8 +69,13 @@ val generateSupabaseConfig = tasks.register("generateSupabaseConfig") {
     }
 }
 
+val generateSupabaseConfig = tasks.register<GenerateSupabaseConfigTask>("generateSupabaseConfig") {
+    localPropertiesFile.set(rootProject.layout.projectDirectory.file("local.properties"))
+    outputDirectory.set(generatedSupabaseDir)
+}
+
 tasks.configureEach {
-    if (name.startsWith("compile") && name.contains("Kotlin")) {
+    if (name.startsWith("compile")) {
         dependsOn(generateSupabaseConfig)
     }
 }

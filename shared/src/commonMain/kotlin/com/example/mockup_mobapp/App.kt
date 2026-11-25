@@ -19,7 +19,6 @@ import com.example.mockup_mobapp.ui.screens.MyAccountScreen
 import com.example.mockup_mobapp.ui.screens.MyActivityScreen
 import com.example.mockup_mobapp.ui.screens.ReportProblemScreen
 import com.example.mockup_mobapp.data.local.AppDatabase
-import com.example.mockup_mobapp.data.repository.SqlDelightFoundItemRepository
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.collect
@@ -97,9 +96,7 @@ fun App(database: AppDatabase) {
     }
 
     val itemRepository = remember(database) {
-        val localRepository = SqlDelightFoundItemRepository(database)
-
-        SupabaseFoundItemRepository(localRepository)
+        SupabaseFoundItemRepository()
     }
 
     var currentScreen by remember {
