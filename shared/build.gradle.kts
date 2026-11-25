@@ -1,39 +1,34 @@
 import java.util.Properties
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-plugins {
-    alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidMultiplatformLibrary)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.sqldelight)
-}
+abstract class GenerateSupabaseConfig : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val localPropertiesFile: RegularFileProperty
 
-val generatedSupabaseDir =
-    layout.buildDirectory.dir("generated/supabase/commonMain/kotlin")
+    @get:OutputDirectory
+    abstract val generatedDirectory: DirectoryProperty
 
-val generateSupabaseConfig = tasks.register("generateSupabaseConfig") {
-    val localPropertiesFile = rootProject.file("local.properties")
-
-    inputs.file(localPropertiesFile)
-    outputs.dir(generatedSupabaseDir)
-
-    doLast {
+    @TaskAction
+    fun generate() {
         val properties = Properties()
-
-        require(localPropertiesFile.exists()) {
+        val inputFile = localPropertiesFile.get().asFile
+        require(inputFile.exists()) {
             "local.properties was not found."
         }
-
-        localPropertiesFile.inputStream().use {
-            properties.load(it)
-        }
+        inputFile.inputStream().use(properties::load)
 
         val url = requireNotNull(properties.getProperty("SUPABASE_URL")) {
             "SUPABASE_URL is missing from local.properties."
         }
-
         val key = requireNotNull(properties.getProperty("SUPABASE_PUBLISHABLE_KEY")) {
             "SUPABASE_PUBLISHABLE_KEY is missing from local.properties."
         }
@@ -41,12 +36,10 @@ val generateSupabaseConfig = tasks.register("generateSupabaseConfig") {
         fun escape(value: String): String =
             value.replace("\\", "\\\\").replace("\"", "\\\"")
 
-        val outputFile = generatedSupabaseDir.get()
+        val outputFile = generatedDirectory.get()
             .file("com/example/mockup_mobapp/data/remote/SupabaseConfig.kt")
             .asFile
-
         outputFile.parentFile.mkdirs()
-
         outputFile.writeText(
             """
             package com.example.mockup_mobapp.data.remote
@@ -60,8 +53,25 @@ val generateSupabaseConfig = tasks.register("generateSupabaseConfig") {
     }
 }
 
+plugins {
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sqldelight)
+}
+
+val generatedSupabaseDir =
+    layout.buildDirectory.dir("generated/supabase/commonMain/kotlin")
+
+val generateSupabaseConfig = tasks.register<GenerateSupabaseConfig>("generateSupabaseConfig") {
+    localPropertiesFile.set(rootProject.layout.projectDirectory.file("local.properties"))
+    generatedDirectory.set(generatedSupabaseDir)
+}
+
 tasks.configureEach {
-    if (name.startsWith("compile") && name.contains("Kotlin")) {
+    if (name.startsWith("compile")) {
         dependsOn(generateSupabaseConfig)
     }
 }

@@ -21,6 +21,9 @@ onReportProblem: () -> Unit = {}
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isSubmitting by remember { mutableStateOf(false) }
+    var hasSubmittedClaim by remember(item.id) {
+        mutableStateOf(false)
+    }
 
     var showClaimForm by remember {
         mutableStateOf(false)
@@ -101,7 +104,15 @@ onReportProblem: () -> Unit = {}
 
 
 // Claim Section
-        when (item.status) {
+        val displayedStatus = if (
+            item.status == ItemStatus.AVAILABLE && hasSubmittedClaim
+        ) {
+            ItemStatus.CLAIM_PENDING
+        } else {
+            item.status
+        }
+
+        when (displayedStatus) {
 
             ItemStatus.AVAILABLE -> {
                 Card(
@@ -177,11 +188,7 @@ onReportProblem: () -> Unit = {}
 
                                                 repository.addClaim(newClaim)
 
-                                                repository.updateItemStatus(
-                                                    itemId = item.id,
-                                                    status = ItemStatus.CLAIM_PENDING
-                                                )
-
+                                                hasSubmittedClaim = true
                                                 claimMessage = "Your claim has been submitted successfully!"
                                                 showClaimForm = false
                                                 claimReason = ""
@@ -204,12 +211,6 @@ onReportProblem: () -> Unit = {}
                             }
                         }
 
-                        if (claimMessage.isNotEmpty()) {
-                            Text(
-                                text = claimMessage,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
                     }
                 }
             }
@@ -254,6 +255,13 @@ onReportProblem: () -> Unit = {}
                     }
                 }
             }
+        }
+
+        if (claimMessage.isNotEmpty()) {
+            Text(
+                text = claimMessage,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
 
         OutlinedButton(

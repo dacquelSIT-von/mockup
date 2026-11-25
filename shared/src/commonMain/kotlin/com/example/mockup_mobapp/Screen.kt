@@ -1,5 +1,10 @@
 package com.example.mockup_mobapp
 
+import com.example.mockup_mobapp.data.model.UserRole
+
+internal fun isScreenAuthorized(screen: Screen, role: UserRole): Boolean =
+    screen != Screen.STAFF_CLAIMS || role == UserRole.STAFF
+
 enum class Screen {
     HOME,
     FIND_ITEM,

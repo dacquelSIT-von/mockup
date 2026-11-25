@@ -10,6 +10,8 @@ import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 
 class SupabaseFoundItemRepository(
     private val localRepository: FoundItemRepository
@@ -64,8 +66,16 @@ class SupabaseFoundItemRepository(
     override suspend fun getClaims(): List<Claim> =
         localRepository.getClaims()
 
-    override suspend fun addClaim(claim: Claim) =
-        localRepository.addClaim(claim)
+    override suspend fun addClaim(claim: Claim) {
+        supabase.postgrest.rpc(
+            function = "submit_claim",
+            parameters = SupabaseSubmitClaimParams(
+                itemId = claim.itemId,
+                claimReason = claim.claimReason,
+                identifyingDetails = claim.identifyingDetails
+            )
+        )
+    }
 
     override suspend fun updateClaimStatus(
         claimId: String,

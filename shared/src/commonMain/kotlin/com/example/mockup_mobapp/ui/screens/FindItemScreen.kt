@@ -74,9 +74,12 @@ fun FindItemScreen(
 
     val categories = listOf(
         "All Categories",
-        "Personal Belongings",
+        "Electronics",
+        "Bags",
+        "IDs",
+        "Clothing",
         "Accessories",
-        "Documents"
+        "Other"
     )
 
     val locations = listOf(

@@ -184,8 +184,9 @@ fun App(database: AppDatabase) {
                 Row(modifier = Modifier.fillMaxSize()) {
                     AppNavigation(
                         currentScreen = currentScreen,
-                        onNavigate = { currentScreen = it },
-                        isDesktop = true
+                        onNavigate = { currentScreen = if (isScreenAuthorized(it, requireNotNull(profile).role)) it else Screen.HOME },
+                        isDesktop = true,
+                        role = requireNotNull(profile).role
                     )
 
                     ScreenContent(
@@ -216,8 +217,9 @@ fun App(database: AppDatabase) {
 
                     AppNavigation(
                         currentScreen = currentScreen,
-                        onNavigate = { currentScreen = it },
-                        isDesktop = false
+                        onNavigate = { currentScreen = if (isScreenAuthorized(it, requireNotNull(profile).role)) it else Screen.HOME },
+                        isDesktop = false,
+                        role = requireNotNull(profile).role
                     )
                 }
             }
@@ -244,9 +246,13 @@ fun ScreenContent(
     itemRepository: FoundItemRepository,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val authorizedScreen = if (isScreenAuthorized(currentScreen, profile.role)) currentScreen else Screen.HOME
+    LaunchedEffect(authorizedScreen) {
+        if (currentScreen != authorizedScreen) onNavigate(authorizedScreen)
+    }
     
     Box(modifier = modifier.fillMaxSize()) {
-        when (currentScreen) {
+        when (authorizedScreen) {
             Screen.HOME -> HomeScreen(
                 onFindItem = {
                     onNavigate(Screen.FIND_ITEM)
