@@ -11,8 +11,8 @@ import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 import com.example.mockup_mobapp.data.model.Claim
 import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.data.model.ClaimStatus
-import kotlinx.coroutines.launch
 import com.example.mockup_mobapp.data.model.ItemStatus
+import kotlinx.coroutines.launch
 
 @Composable
 fun StaffClaimScreen(
@@ -27,10 +27,58 @@ fun StaffClaimScreen(
     var items by remember {
         mutableStateOf<List<FoundItem>>(emptyList())
     }
+    var actionInProgress by remember { mutableStateOf<String?>(null) }
+    var actionMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(repository) {
-        claims = repository.getClaims()
-        items = repository.getFoundItems()
+        runCatching {
+            claims = repository.getClaims()
+            items = repository.getFoundItems()
+        }.onFailure { error ->
+            actionMessage = error.message ?: "Could not load claims."
+        }
+    }
+
+    fun reviewClaim(claim: Claim, approve: Boolean) {
+        if (actionInProgress != null) return
+        coroutineScope.launch {
+            actionInProgress = claim.id
+            actionMessage = ""
+            var currentStep = "updating claim"
+            var claimWasApproved = false
+            try {
+                repository.updateClaimStatus(
+                    claimId = claim.id,
+                    status = if (approve) ClaimStatus.APPROVED else ClaimStatus.REJECTED
+                )
+                if (approve) {
+                    claimWasApproved = true
+                    currentStep = "updating item status"
+                    repository.updateItemStatus(
+                        itemId = claim.itemId,
+                        status = ItemStatus.RETURNED
+                    )
+                    currentStep = "closing other pending claims"
+                    repository.rejectOtherPendingClaims(
+                        itemId = claim.itemId,
+                        approvedClaimId = claim.id
+                    )
+                }
+                claims = repository.getClaims()
+                items = repository.getFoundItems()
+                actionMessage = if (approve) "Claim approved." else "Claim rejected."
+            } catch (error: Exception) {
+                if (approve && claimWasApproved && currentStep == "updating item status") {
+                    runCatching {
+                        repository.updateClaimStatus(claim.id, ClaimStatus.PENDING)
+                    }
+                }
+                actionMessage = "Could not complete $currentStep: ${error.message ?: "Unknown error"}"
+                runCatching { claims = repository.getClaims() }
+            } finally {
+                actionInProgress = null
+            }
+        }
     }
 
     Column(
@@ -49,16 +97,19 @@ fun StaffClaimScreen(
         Text(
             text = "Review student ownership claims."
         )
+        if (actionMessage.isNotEmpty()) {
+            Text(actionMessage, color = MaterialTheme.colorScheme.error)
+        }
         Text(
             text = "Pending Claims",
             style = MaterialTheme.typography.titleLarge
         )
 
-        if (claims.isEmpty()) {
-            Text("No claims have been submitted yet.")
+        val pendingClaims = claims.filter { it.status == ClaimStatus.PENDING }
+        if (pendingClaims.isEmpty()) {
+            Text("There are no pending claims.")
         } else {
-            claims.filter { it.status == ClaimStatus.PENDING }
-                .forEach { claim ->
+            pendingClaims.forEach { claim ->
 
                     val itemName = items.find {
                         it.id == claim.itemId
@@ -86,40 +137,15 @@ fun StaffClaimScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Button(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            repository.updateClaimStatus(
-                                                claimId = claim.id,
-                                                status = ClaimStatus.APPROVED
-                                            )
-
-                                            repository.rejectOtherPendingClaims(
-                                                itemId = claim.itemId,
-                                                approvedClaimId = claim.id
-                                            )
-
-                                            repository.updateItemStatus(
-                                                itemId = claim.itemId,
-                                                status = ItemStatus.RETURNED
-                                            )
-                                            claims = repository.getClaims()
-                                        }
-                                    }
+                                    onClick = { reviewClaim(claim, approve = true) },
+                                    enabled = actionInProgress == null
                                 ) {
-                                    Text("Approve")
+                                    Text(if (actionInProgress == claim.id) "Saving..." else "Approve")
                                 }
 
                                 OutlinedButton(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            repository.updateClaimStatus(
-                                                claimId = claim.id,
-                                                status = ClaimStatus.REJECTED
-                                            )
-
-                                            claims = repository.getClaims()
-                                        }
-                                    }
+                                    onClick = { reviewClaim(claim, approve = false) },
+                                    enabled = actionInProgress == null
                                 ) {
                                     Text("Reject")
                                 }

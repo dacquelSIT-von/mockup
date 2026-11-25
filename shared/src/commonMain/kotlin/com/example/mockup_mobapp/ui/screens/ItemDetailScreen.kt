@@ -187,7 +187,12 @@ onReportProblem: () -> Unit = {}
 
                                             } catch (exception: Exception) {
                                                 exception.printStackTrace()
-                                                claimMessage = "Claim error: ${exception.message}"
+                                                val details = exception.message
+                                                    ?.takeIf(String::isNotBlank)
+                                                    ?: exception.cause?.message
+                                                    ?: exception::class.simpleName
+                                                    ?: "Unknown error"
+                                                claimMessage = "Claim could not be submitted: $details"
                                             } finally {
                                                 isSubmitting = false
                                             }
