@@ -22,12 +22,14 @@ import com.example.mockup_mobapp.data.local.AppDatabase
 import com.example.mockup_mobapp.data.repository.SqlDelightFoundItemRepository
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 import io.github.jan.supabase.auth.status.SessionStatus
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import io.github.jan.supabase.auth.auth
 import com.example.mockup_mobapp.ui.screens.AuthScreen
 import androidx.compose.material3.CircularProgressIndicator
 import com.example.mockup_mobapp.data.remote.AuthService
 import com.example.mockup_mobapp.data.remote.SupabaseFoundItemRepository
+import com.example.mockup_mobapp.data.remote.SupabaseProfileRepository
+import com.example.mockup_mobapp.data.model.UserProfile
 
 //staff
 import com.example.mockup_mobapp.ui.screens.StaffClaimScreen
@@ -49,17 +51,27 @@ fun App(database: AppDatabase) {
         mutableStateOf(true)
     }
 
+    var profile by remember { mutableStateOf<UserProfile?>(null) }
+    var profileState by remember { mutableStateOf(ProfileLoadState.Idle) }
+    var profileRetryKey by remember { mutableStateOf(0) }
+    val profileRepository = remember { SupabaseProfileRepository() }
+    val appScope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
-        supabase.auth.sessionStatus.collect { status ->
+        supabase.auth.sessionStatus.collectLatest { status ->
             when (status) {
                 is SessionStatus.Authenticated -> {
                     isAuthenticated = true
                     isCheckingAuth = false
+                    profile = null
+                    profileState = ProfileLoadState.Loading
                 }
 
                 is SessionStatus.NotAuthenticated -> {
                     isAuthenticated = false
                     isCheckingAuth = false
+                    profile = null
+                    profileState = ProfileLoadState.Idle
                 }
 
                 is SessionStatus.Initializing -> {
@@ -69,7 +81,28 @@ fun App(database: AppDatabase) {
                 is SessionStatus.RefreshFailure -> {
                     isAuthenticated = false
                     isCheckingAuth = false
+                    profile = null
+                    profileState = ProfileLoadState.Idle
                 }
+            }
+        }
+    }
+
+    LaunchedEffect(isAuthenticated, profileRetryKey, profileRepository) {
+        if (isAuthenticated) {
+            profileState = ProfileLoadState.Loading
+            try {
+                profile = profileRepository.getCurrentProfile()
+                profileState = if (profile == null) {
+                    ProfileLoadState.Missing
+                } else {
+                    ProfileLoadState.Loaded
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                profile = null
+                profileState = ProfileLoadState.Error
             }
         }
     }
@@ -125,6 +158,22 @@ fun App(database: AppDatabase) {
             AuthScreen()
         }
 
+        profileState != ProfileLoadState.Loaded || profile == null -> {
+            ProfileStatusScreen(
+                state = profileState,
+                onRetry = { profileRetryKey++ },
+                onLogout = {
+                    appScope.launch {
+                        try {
+                            AuthService().logout()
+                        } catch (_: Exception) {
+                            profileState = ProfileLoadState.Error
+                        }
+                    }
+                }
+            )
+        }
+
         else -> {
             BoxWithConstraints(
                 modifier = Modifier.fillMaxSize()
@@ -144,6 +193,7 @@ fun App(database: AppDatabase) {
                         onNavigate = { currentScreen = it },
                         modifier = Modifier.weight(1f),
                         selectedItem = selectedItem,
+                        profile = requireNotNull(profile),
                         onItemSelected = { item ->
                             selectedItem = item
                         },
@@ -157,6 +207,7 @@ fun App(database: AppDatabase) {
                         onNavigate = { currentScreen = it },
                         modifier = Modifier.weight(1f),
                         selectedItem = selectedItem,
+                        profile = requireNotNull(profile),
                         onItemSelected = { item ->
                             selectedItem = item
                         },
@@ -188,6 +239,7 @@ fun ScreenContent(
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
     selectedItem: FoundItem?,
+    profile: UserProfile,
     onItemSelected: (FoundItem) -> Unit,
     itemRepository: FoundItemRepository,
 ) {
@@ -252,6 +304,7 @@ fun ScreenContent(
 
            Screen.MY_ACCOUNT ->
             MyAccountScreen(
+                profile = profile,
                 onLogout = {
                     coroutineScope.launch {
                         AuthService().logout()
@@ -265,6 +318,51 @@ fun ScreenContent(
                 )
             
                 
+        }
+    }
+}
+
+private enum class ProfileLoadState {
+    Idle,
+    Loading,
+    Loaded,
+    Missing,
+    Error
+}
+
+@Composable
+private fun ProfileStatusScreen(
+    state: ProfileLoadState,
+    onRetry: () -> Unit,
+    onLogout: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        when (state) {
+            ProfileLoadState.Idle, ProfileLoadState.Loading -> {
+                CircularProgressIndicator()
+                Text("Loading your profile…")
+            }
+            ProfileLoadState.Missing -> {
+                Text("Your account profile was not found.")
+                Text("Please contact support to restore your profile.")
+                androidx.compose.material3.Button(onClick = onLogout) {
+                    Text("Log out")
+                }
+            }
+            ProfileLoadState.Error -> {
+                Text("Unable to load your profile. Check your connection and try again.")
+                androidx.compose.material3.Button(onClick = onRetry) {
+                    Text("Retry")
+                }
+                androidx.compose.material3.TextButton(onClick = onLogout) {
+                    Text("Log out")
+                }
+            }
+            ProfileLoadState.Loaded -> Unit
         }
     }
 }

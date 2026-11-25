@@ -7,9 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.mockup_mobapp.data.model.UserProfile
 
 @Composable
 fun MyAccountScreen(
+    profile: UserProfile,
     onLogout: () -> Unit
 ) {
 
@@ -36,17 +38,17 @@ fun MyAccountScreen(
             ) {
 
                 Text(
-                    text = "Student Profile",
+                    text = "${profile.role.name.lowercase().replaceFirstChar { it.uppercase() }} Profile",
                     style = MaterialTheme.typography.titleLarge
                 )
 
                 Text(
-                    text = "Student Name",
+                    text = profile.fullName,
                     style = MaterialTheme.typography.headlineSmall
                 )
 
                 Text(
-                    text = "School of Information Technology",
+                    text = "Account ID: ${profile.id}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
