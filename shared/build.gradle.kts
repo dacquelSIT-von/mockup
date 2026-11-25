@@ -39,13 +39,14 @@ abstract class GenerateSupabaseConfigTask : DefaultTask() {
             properties.load(it)
         }
 
-        val url = requireNotNull(properties.getProperty("SUPABASE_URL")) {
-            "SUPABASE_URL is missing from local.properties."
-        }
+        fun requiredProperty(name: String): String =
+            properties.getProperty(name)
+                ?.trim()
+                ?.takeIf(String::isNotEmpty)
+                ?: error("$name is missing or empty in local.properties.")
 
-        val key = requireNotNull(properties.getProperty("SUPABASE_PUBLISHABLE_KEY")) {
-            "SUPABASE_PUBLISHABLE_KEY is missing from local.properties."
-        }
+        val url = requiredProperty("SUPABASE_URL")
+        val key = requiredProperty("SUPABASE_PUBLISHABLE_KEY")
 
         fun escape(value: String): String =
             value.replace("\\", "\\\\").replace("\"", "\\\"")
