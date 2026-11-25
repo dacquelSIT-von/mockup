@@ -15,6 +15,11 @@ interface FoundItemRepository {
 
     suspend fun addClaim(claim: Claim)
 
+    suspend fun reviewClaim(
+        claimId: String,
+        decision: String
+    )
+
     suspend fun updateClaimStatus(
         claimId: String,
         status: ClaimStatus

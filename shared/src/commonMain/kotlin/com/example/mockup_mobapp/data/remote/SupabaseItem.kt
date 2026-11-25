@@ -21,7 +21,10 @@ data class SupabaseItem(
     @SerialName("report_type")
     val reportType: String,
 
-    val status: String
+    val status: String,
+
+    @SerialName("user_id")
+    val userId: String? = null
 )
 
 @Serializable

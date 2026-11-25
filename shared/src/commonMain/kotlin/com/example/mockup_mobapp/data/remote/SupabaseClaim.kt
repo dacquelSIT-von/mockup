@@ -17,10 +17,10 @@ data class SupabaseClaim(
     val claimDescription: String,
 
     @SerialName("claim_reason")
-    val claimReason: String,
+    val claimReason: String?,
 
     @SerialName("identifying_details")
-    val identifyingDetails: String,
+    val identifyingDetails: String?,
 
     val status: String,
 
@@ -53,4 +53,13 @@ data class SupabaseSubmitClaimParams(
 
     @SerialName("p_identifying_details")
     val identifyingDetails: String
+)
+
+@Serializable
+data class SupabaseReviewClaimParams(
+    @SerialName("p_claim_id")
+    val claimId: String,
+
+    @SerialName("p_decision")
+    val decision: String
 )

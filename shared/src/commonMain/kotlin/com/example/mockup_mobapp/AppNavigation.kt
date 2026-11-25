@@ -10,7 +10,11 @@ import androidx.compose.runtime.Composable
 import com.example.mockup_mobapp.data.model.UserRole
 
 internal fun navigationScreensForRole(role: UserRole): List<Screen> = buildList {
-    addAll(listOf(Screen.HOME, Screen.FIND_ITEM, Screen.REPORT_ITEM, Screen.MY_ACTIVITY, Screen.MY_ACCOUNT))
+    add(Screen.HOME)
+    add(Screen.FIND_ITEM)
+    if (role != UserRole.STAFF) add(Screen.REPORT_ITEM)
+    add(Screen.MY_ACTIVITY)
+    add(Screen.MY_ACCOUNT)
     if (role == UserRole.STAFF) add(Screen.STAFF_CLAIMS)
 }
 
@@ -21,16 +25,23 @@ fun AppNavigation(
     isDesktop: Boolean,
     role: UserRole
 ) {
-    val navigationItems = listOf(
-        Triple(Screen.HOME, "Home", "⌂"),
-        Triple(Screen.FIND_ITEM, "Find Item", "⌕"),
-        Triple(Screen.REPORT_ITEM, "Report Item", "+"),
-        Triple(Screen.MY_ACTIVITY, "My Activity", "▤"),
-        Triple(Screen.MY_ACCOUNT, "My Account", "●")
-    ) + if (role == UserRole.STAFF) {
-        listOf(Triple(Screen.STAFF_CLAIMS, "Staff Claims", "✓"))
-    } else {
-        emptyList()
+    val navigationItems = buildList {
+        add(Triple(Screen.HOME, "Home", "⌂"))
+        add(Triple(Screen.FIND_ITEM, "Find Item", "⌕"))
+        if (role != UserRole.STAFF) {
+            add(Triple(Screen.REPORT_ITEM, "Report Found Item", "+"))
+        }
+        add(
+            Triple(
+                Screen.MY_ACTIVITY,
+                if (role == UserRole.STAFF) "Reports" else "My Activity",
+                "▤"
+            )
+        )
+        add(Triple(Screen.MY_ACCOUNT, "My Account", "●"))
+        if (role == UserRole.STAFF) {
+            add(Triple(Screen.STAFF_CLAIMS, "Claims to Review", "✓"))
+        }
     }
 
     if (isDesktop) {

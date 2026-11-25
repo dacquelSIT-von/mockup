@@ -73,6 +73,12 @@ class SqlDelightFoundItemRepository(
         )
     }
 
+    override suspend fun reviewClaim(claimId: String, decision: String) {
+        throw UnsupportedOperationException(
+            "Staff claim review is only supported by the Supabase repository."
+        )
+    }
+
     override suspend fun updateClaimStatus(
         claimId: String,
         status: ClaimStatus

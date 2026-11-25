@@ -104,12 +104,12 @@ fun FindItemScreen(
             selectedLocation == "All Locations" ||
             item.location == selectedLocation
 
-        val matchesStatus =
-            if (selectedTab == 0) {
-                item.status == ItemStatus.AVAILABLE
-            } else {
-                item.status == ItemStatus.CLAIM_PENDING
-            }
+        val selectedStatus = when (selectedTab) {
+            0 -> ItemStatus.AVAILABLE
+            1 -> ItemStatus.CLAIM_PENDING
+            else -> ItemStatus.RETURNED
+        }
+        val matchesStatus = item.status == selectedStatus
 
         matchesStatus && matchesSearch && matchesCategory && matchesLocation
     }
@@ -196,6 +196,12 @@ fun FindItemScreen(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
                 text = { Text("Claim Pending") }
+            )
+
+            Tab(
+                selected = selectedTab == 2,
+                onClick = { selectedTab = 2 },
+                text = { Text("Returned") }
             )
         }
 

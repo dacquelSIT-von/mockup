@@ -12,7 +12,6 @@ import com.example.mockup_mobapp.data.model.Claim
 import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.data.model.ClaimStatus
 import kotlinx.coroutines.launch
-import com.example.mockup_mobapp.data.model.ItemStatus
 
 @Composable
 fun StaffClaimScreen(
@@ -88,19 +87,9 @@ fun StaffClaimScreen(
                                 Button(
                                     onClick = {
                                         coroutineScope.launch {
-                                            repository.updateClaimStatus(
+                                            repository.reviewClaim(
                                                 claimId = claim.id,
-                                                status = ClaimStatus.APPROVED
-                                            )
-
-                                            repository.rejectOtherPendingClaims(
-                                                itemId = claim.itemId,
-                                                approvedClaimId = claim.id
-                                            )
-
-                                            repository.updateItemStatus(
-                                                itemId = claim.itemId,
-                                                status = ItemStatus.RETURNED
+                                                decision = "APPROVE"
                                             )
                                             claims = repository.getClaims()
                                         }
@@ -112,9 +101,9 @@ fun StaffClaimScreen(
                                 OutlinedButton(
                                     onClick = {
                                         coroutineScope.launch {
-                                            repository.updateClaimStatus(
+                                            repository.reviewClaim(
                                                 claimId = claim.id,
-                                                status = ClaimStatus.REJECTED
+                                                decision = "REJECT"
                                             )
 
                                             claims = repository.getClaims()

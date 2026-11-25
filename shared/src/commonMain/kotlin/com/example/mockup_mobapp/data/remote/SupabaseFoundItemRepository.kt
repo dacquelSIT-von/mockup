@@ -36,7 +36,8 @@ class SupabaseFoundItemRepository(
                 ),
                 status = ItemStatus.valueOf(
                     item.status.trim().uppercase()
-                )
+                ),
+                userId = item.userId
             )
         }
     }
@@ -63,8 +64,33 @@ class SupabaseFoundItemRepository(
             .insert(newItem)
     }
 
-    override suspend fun getClaims(): List<Claim> =
-        localRepository.getClaims()
+    override suspend fun getClaims(): List<Claim> {
+        val remoteClaims = supabase
+            .from("claims")
+            .select()
+            .decodeList<SupabaseClaim>()
+
+        return remoteClaims.map { claim ->
+            val status = when (claim.status.trim().uppercase()) {
+                "PENDING_REVIEW" -> ClaimStatus.PENDING
+                "APPROVED" -> ClaimStatus.APPROVED
+                "REJECTED" -> ClaimStatus.REJECTED
+                else -> throw IllegalStateException(
+                    "Unsupported claim status '${claim.status}' for claim ${claim.id}."
+                )
+            }
+
+            Claim(
+                id = claim.id,
+                itemId = claim.itemId,
+                claimantId = claim.claimantId,
+                claimReason = claim.claimReason.orEmpty(),
+                identifyingDetails = claim.identifyingDetails.orEmpty(),
+                status = status,
+                createdAt = claim.createdAt
+            )
+        }
+    }
 
     override suspend fun addClaim(claim: Claim) {
         supabase.postgrest.rpc(
@@ -73,6 +99,16 @@ class SupabaseFoundItemRepository(
                 itemId = claim.itemId,
                 claimReason = claim.claimReason,
                 identifyingDetails = claim.identifyingDetails
+            )
+        )
+    }
+
+    override suspend fun reviewClaim(claimId: String, decision: String) {
+        supabase.postgrest.rpc(
+            function = "review_claim",
+            parameters = SupabaseReviewClaimParams(
+                claimId = claimId,
+                decision = decision
             )
         )
     }

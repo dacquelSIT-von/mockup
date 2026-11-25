@@ -305,7 +305,9 @@ fun ScreenContent(
 
             Screen.MY_ACTIVITY ->
                 MyActivityScreen(
-                    repository = itemRepository
+                    repository = itemRepository,
+                    currentUserId = profile.id,
+                    userRole = profile.role
                 )
 
            Screen.MY_ACCOUNT ->

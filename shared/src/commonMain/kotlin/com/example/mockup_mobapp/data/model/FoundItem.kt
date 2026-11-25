@@ -20,5 +20,6 @@ data class FoundItem(
     val location: String,
     val dateFound: String,
     val reportType: ReportType = ReportType.FOUND,
-    val status: ItemStatus = ItemStatus.AVAILABLE
+    val status: ItemStatus = ItemStatus.AVAILABLE,
+    val userId: String? = null
 )

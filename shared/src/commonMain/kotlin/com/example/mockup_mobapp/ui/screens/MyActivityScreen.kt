@@ -12,12 +12,16 @@ import androidx.compose.ui.unit.dp
 import com.example.mockup_mobapp.domain.repository.FoundItemRepository
 import com.example.mockup_mobapp.data.model.FoundItem
 import com.example.mockup_mobapp.data.model.Claim
+import com.example.mockup_mobapp.data.model.UserRole
+import kotlinx.coroutines.CancellationException
 @Composable
 fun MyActivityScreen(
-    repository: FoundItemRepository
+    repository: FoundItemRepository,
+    currentUserId: String,
+    userRole: UserRole
 ) {
 
-    var selectedTab by remember {
+    var selectedTab by remember(userRole) {
         mutableIntStateOf(0)
     }
 
@@ -28,13 +32,48 @@ fun MyActivityScreen(
     var claims by remember {
         mutableStateOf<List<Claim>>(emptyList())
     }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(repository) {
-        reports = repository.getFoundItems()
-        claims = repository.getClaims()
+    LaunchedEffect(repository, currentUserId, userRole, refreshKey) {
+        isLoading = true
+        errorMessage = null
+
+        try {
+            val loadedReports = repository.getFoundItems()
+            val loadedClaims = if (userRole == UserRole.STAFF) {
+                emptyList()
+            } else {
+                repository.getClaims()
+            }
+            reports = loadedReports
+            claims = loadedClaims
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            errorMessage = if (userRole == UserRole.STAFF) {
+                "Unable to load reports. Check your connection and try again."
+            } else {
+                "Unable to load your activity. Check your connection and try again."
+            }
+        } finally {
+            isLoading = false
+        }
     }
 
-    val tabs = listOf("My Reports", "My Claims")
+    val visibleReports = if (userRole == UserRole.STAFF) {
+        reports
+    } else {
+        reports.filter { it.userId == currentUserId }
+    }
+    val visibleClaims = claims.filter { it.claimantId == currentUserId }
+
+    val tabs = if (userRole == UserRole.STAFF) {
+        listOf("Reports")
+    } else {
+        listOf("My Reports", "My Claims")
+    }
 
     Column(
         modifier = Modifier
@@ -45,12 +84,16 @@ fun MyActivityScreen(
     ) {
 
         Text(
-            text = "My Activity",
+            text = if (userRole == UserRole.STAFF) "Reports" else "My Activity",
             style = MaterialTheme.typography.headlineMedium
         )
 
         Text(
-            text = "Track your reported items and ownership claims.",
+            text = if (userRole == UserRole.STAFF) {
+                "View item reports submitted by all users."
+            } else {
+                "Track your reported items and ownership claims."
+            },
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -66,20 +109,52 @@ fun MyActivityScreen(
             }
         }
 
-        if (selectedTab == 0) {
-            reports.forEach { item ->
-                ActivityCard(
-                    itemName = item.itemName,
-                    status = item.status.name
-                )
+        when {
+            isLoading -> {
+                CircularProgressIndicator()
             }
-        } else {
-            claims.forEach { claim ->
-                ActivityCard(
-                    itemName = reports.find { it.id == claim.itemId }?.itemName
-                        ?: "Unknown Item",
-                    status = claim.status.name
+
+            errorMessage != null -> {
+                Text(
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error
                 )
+                Button(onClick = { refreshKey++ }) {
+                    Text("Retry")
+                }
+            }
+
+            selectedTab == 0 -> {
+                if (visibleReports.isEmpty()) {
+                    Text(
+                        if (userRole == UserRole.STAFF) {
+                            "No reports are available."
+                        } else {
+                            "You haven't submitted any reports yet."
+                        }
+                    )
+                } else {
+                    visibleReports.forEach { item ->
+                        ActivityCard(
+                            itemName = item.itemName,
+                            status = item.status.name
+                        )
+                    }
+                }
+            }
+
+            visibleClaims.isEmpty() -> {
+                Text("You don't have any claims yet.")
+            }
+
+            else -> {
+                visibleClaims.forEach { claim ->
+                    ActivityCard(
+                        itemName = reports.find { it.id == claim.itemId }?.itemName
+                            ?: "Unknown Item",
+                        status = claim.status.name
+                    )
+                }
             }
         }
     }
